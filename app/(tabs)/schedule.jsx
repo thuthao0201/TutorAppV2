@@ -39,7 +39,7 @@ export default function ScheduleScreen() {
       try {
         const response = await api.get("/api/classes");
 
-        console.log(response.data); // In ra dữ liệu lịch học để kiểm tra
+        // console.log("In ra dữ liệu lịch học: ", response.data); // In ra dữ liệu lịch học để kiểm tra
 
         const daysOfWeek = {
           Sunday: 0,

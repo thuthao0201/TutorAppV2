@@ -6,13 +6,14 @@ import {
   TouchableOpacity,
   FlatList,
   StyleSheet,
-  Image,
   KeyboardAvoidingView,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Platform } from "react-native";
 import { useRouter } from "expo-router";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { ApiClient } from "../config/api";
 
 export default function ChatScreen() {
   const router = useRouter();
@@ -20,9 +21,11 @@ export default function ChatScreen() {
     { id: "1", text: "Xin chào! Tôi có thể giúp gì cho bạn?", sender: "bot" },
   ]);
   const [inputText, setInputText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const api = ApiClient();
 
-  const sendMessage = () => {
-    if (inputText.trim().length === 0) return;
+  const sendMessage = async () => {
+    if (inputText.trim().length === 0 || isLoading) return;
 
     // Thêm tin nhắn người dùng
     const userMessage = {
@@ -31,21 +34,57 @@ export default function ChatScreen() {
       sender: "user",
     };
     setMessages([...messages, userMessage]);
-    setInputText("");
 
-    // Giả lập phản hồi từ AI
-    setTimeout(() => {
-      const botResponse = {
-        id: (Date.now() + 1).toString(),
-        text: "Tôi đang xử lý câu hỏi của bạn...",
-        sender: "bot",
-      };
-      setMessages((prevMessages) => [...prevMessages, botResponse]);
-    }, 1000);
+    const userQuery = inputText;
+    setInputText("");
+    setIsLoading(true);
+
+    // Thêm tin nhắn "đang suy nghĩ"
+    const botTypingId = (Date.now() + 1).toString();
+    const botTypingMessage = {
+      id: botTypingId,
+      text: "Đang suy nghĩ...",
+      sender: "bot",
+    };
+    setMessages((prev) => [...prev, botTypingMessage]);
+
+    try {
+      // Gọi API RAG
+      const response = await api.post("/api/rag/chat", { userQuery });
+
+      // Cập nhật tin nhắn với kết quả từ API
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === botTypingId
+            ? {
+                id: msg.id,
+                text: response.answer || "Tôi không thể trả lời câu hỏi này.",
+                sender: "bot",
+              }
+            : msg
+        )
+      );
+    } catch (error) {
+      console.error("Error calling RAG API:", error);
+
+      // Thay thế tin nhắn "đang suy nghĩ" bằng thông báo lỗi
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === botTypingId
+            ? {
+                id: msg.id,
+                text: "Xin lỗi, đã có lỗi xảy ra khi xử lý yêu cầu của bạn.",
+                sender: "bot",
+              }
+            : msg
+        )
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    // <KeyboardAvoidingScrollView style={{ flex: 1 }}>
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       style={{ flex: 1 }}
@@ -59,12 +98,6 @@ export default function ChatScreen() {
             <Ionicons name="chevron-back" size={20} color="#E74C3C" />
           </TouchableOpacity>
           <Text style={styles.headerText}>Tutor AI</Text>
-          {/* <Ionicons
-            name="notifications-outline"
-            size={24}
-            color="#E74C3C"
-            marginRight="10"
-          /> */}
         </View>
 
         <View style={styles.aiIconContainer}>
@@ -106,10 +139,21 @@ export default function ChatScreen() {
             placeholder="Nhập..."
             value={inputText}
             onChangeText={setInputText}
+            editable={!isLoading}
           />
-          <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
-            <Text style={styles.sendText}>Gửi</Text>
-            <Ionicons name="send" size={18} color="white" />
+          <TouchableOpacity
+            style={[styles.sendButton, isLoading && styles.sendButtonDisabled]}
+            onPress={sendMessage}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <>
+                <Text style={styles.sendText}>Gửi</Text>
+                <Ionicons name="send" size={18} color="white" />
+              </>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -189,6 +233,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 8,
     borderRadius: 20,
+  },
+  sendButtonDisabled: {
+    opacity: 0.7,
   },
   sendText: {
     color: "white",

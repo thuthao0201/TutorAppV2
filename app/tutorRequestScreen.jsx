@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  KeyboardAvoidingView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -243,152 +244,163 @@ const TutorRequestScreen = () => {
           </Text>
         </View>
       </View>
-      <ScrollView style={styles.containerContent}>
-        <PickerSelect
-          label="Môn học"
-          selectedValue={subject}
-          onValueChange={(value) => setSubject(value)}
-          items={[
-            { label: "Toán", value: "Toán" },
-            { label: "Tiếng Anh", value: "Tiếng Anh" },
-            { label: "Vật lý", value: "Vật lý" },
-            { label: "Hóa học", value: "Hóa học" },
-            { label: "Sinh học", value: "Sinh học" },
-            { label: "Ngữ văn", value: "Ngữ văn" },
-            { label: "Lịch sử", value: "Lịch sử" },
-            { label: "Địa lý", value: "Địa lý" },
-            { label: "Tin học", value: "Tin học" },
-          ]}
-        />
-        <PickerSelect
-          label="Cấp độ học"
-          selectedValue={grade}
-          onValueChange={(value) => setGrade(value)}
-          items={gradeItems}
-        />
-        <Text style={styles.label}>Học phí dự kiến</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Học phí dự kiến (VNĐ/Buổi)"
-          value={expectedPrice}
-          onChangeText={(text) => setExpectedPrice(text.replace(/[^0-9]/g, ""))}
-          keyboardType="numeric"
-        />
-        <View style={styles.ContainerPickDay}>
-          <Text style={styles.label}>Ngày học trong tuần</Text>
-          <View style={styles.daysContainer}>
-            {daysOfWeek.map((dayItem) => (
-              <TouchableOpacity
-                key={dayItem.key}
-                style={[
-                  styles.dayButton,
-                  day === dayItem.key && styles.dayButtonSelected,
-                ]}
-                onPress={() => toggleDay(dayItem.key)}
-              >
-                <Text
+      <KeyboardAvoidingView
+        style={styles.containerContent}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+      >
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+        >
+          <PickerSelect
+            label="Môn học"
+            selectedValue={subject}
+            onValueChange={(value) => setSubject(value)}
+            items={[
+              { label: "Toán", value: "Toán" },
+              { label: "Tiếng Anh", value: "Tiếng Anh" },
+              { label: "Vật lý", value: "Vật Lý" },
+              { label: "Hóa học", value: "Hóa Học" },
+              { label: "Sinh học", value: "Sinh Học" },
+              { label: "Ngữ văn", value: "Ngữ Văn" },
+              { label: "Lịch sử", value: "Lịch Sử" },
+              { label: "Địa lý", value: "Địa Lý" },
+              { label: "Tin học", value: "Tin Học" },
+            ]}
+          />
+          <PickerSelect
+            label="Cấp độ học"
+            selectedValue={grade}
+            onValueChange={(value) => setGrade(value)}
+            items={gradeItems}
+          />
+          <Text style={styles.label}>Học phí dự kiến</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Học phí dự kiến (VNĐ/Buổi)"
+            value={expectedPrice}
+            onChangeText={(text) =>
+              setExpectedPrice(text.replace(/[^0-9]/g, ""))
+            }
+            keyboardType="numeric"
+          />
+          <View style={styles.ContainerPickDay}>
+            <Text style={styles.label}>Ngày học trong tuần</Text>
+            <View style={styles.daysContainer}>
+              {daysOfWeek.map((dayItem) => (
+                <TouchableOpacity
+                  key={dayItem.key}
                   style={[
-                    styles.dayButtonText,
-                    day === dayItem.key && styles.dayButtonTextSelected,
+                    styles.dayButton,
+                    day === dayItem.key && styles.dayButtonSelected,
                   ]}
+                  onPress={() => toggleDay(dayItem.key)}
                 >
-                  {dayItem.label}
+                  <Text
+                    style={[
+                      styles.dayButtonText,
+                      day === dayItem.key && styles.dayButtonTextSelected,
+                    ]}
+                  >
+                    {dayItem.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <View style={styles.rowPickDay}>
+              <Text style={styles.label}>Ngày bắt đầu:</Text>
+              <TouchableOpacity
+                style={styles.datePickerButton}
+                onPress={() => setShowStartDatePicker(true)}
+              >
+                <Text style={styles.datePickerText}>
+                  {startDate.toLocaleDateString() || "Chọn ngày bắt đầu"}
                 </Text>
               </TouchableOpacity>
-            ))}
+              {showStartDatePicker && (
+                <DateTimePicker
+                  value={startDate}
+                  mode="date"
+                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  onChange={onChangeStartDate}
+                  minimumDate={new Date()}
+                  // Filter dates based on selected day
+                  filterDate={
+                    Platform.OS === "ios" ? filterAvailableDates : undefined
+                  }
+                />
+              )}
+            </View>
+            <View style={styles.rowPickDay}>
+              <Text style={styles.label}>Ngày kết thúc:</Text>
+              <TouchableOpacity
+                style={styles.datePickerButton}
+                onPress={() => setShowEndDatePicker(true)}
+              >
+                <Text style={styles.datePickerText}>
+                  {endDate.toLocaleDateString() || "Chọn ngày kết thúc"}
+                </Text>
+              </TouchableOpacity>
+              {showEndDatePicker && (
+                <DateTimePicker
+                  value={endDate}
+                  mode="date"
+                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  onChange={onChangeEndDate}
+                  minimumDate={startDate}
+                  // Filter dates based on selected day
+                  filterDate={
+                    Platform.OS === "ios" ? filterAvailableDates : undefined
+                  }
+                />
+              )}
+            </View>
           </View>
-          <View style={styles.rowPickDay}>
-            <Text style={styles.label}>Ngày bắt đầu:</Text>
-            <TouchableOpacity
-              style={styles.datePickerButton}
-              onPress={() => setShowStartDatePicker(true)}
-            >
-              <Text style={styles.datePickerText}>
-                {startDate.toLocaleDateString() || "Chọn ngày bắt đầu"}
-              </Text>
-            </TouchableOpacity>
-            {showStartDatePicker && (
-              <DateTimePicker
-                value={startDate}
-                mode="date"
-                display={Platform.OS === "ios" ? "spinner" : "default"}
-                onChange={onChangeStartDate}
-                minimumDate={new Date()}
-                // Filter dates based on selected day
-                filterDate={
-                  Platform.OS === "ios" ? filterAvailableDates : undefined
-                }
-              />
-            )}
-          </View>
-          <View style={styles.rowPickDay}>
-            <Text style={styles.label}>Ngày kết thúc:</Text>
-            <TouchableOpacity
-              style={styles.datePickerButton}
-              onPress={() => setShowEndDatePicker(true)}
-            >
-              <Text style={styles.datePickerText}>
-                {endDate.toLocaleDateString() || "Chọn ngày kết thúc"}
-              </Text>
-            </TouchableOpacity>
-            {showEndDatePicker && (
-              <DateTimePicker
-                value={endDate}
-                mode="date"
-                display={Platform.OS === "ios" ? "spinner" : "default"}
-                onChange={onChangeEndDate}
-                minimumDate={startDate}
-                // Filter dates based on selected day
-                filterDate={
-                  Platform.OS === "ios" ? filterAvailableDates : undefined
-                }
-              />
-            )}
-          </View>
-        </View>
 
-        <PickerSelect
-          label="Khung giờ học"
-          selectedValue={time}
-          onValueChange={(value) => setTime(value)}
-          items={timeSlotItems}
-        />
-        <Text style={styles.label}>Yêu cầu chi tiết</Text>
-        <TextInput
-          style={[styles.input, styles.textArea]}
-          placeholder="Nhập yêu cầu chi tiết"
-          value={requirements}
-          onChangeText={setRequirements}
-          multiline={true}
-          numberOfLines={4}
-        />
-        {alternativeTimes.length > 0 && (
-          <View style={styles.alternativeTimesContainer}>
-            <Text style={styles.alternativeTimesTitle}>
-              Các thời gian thay thế:
-            </Text>
-            {alternativeTimes.map((alt, index) => (
-              <View key={index} style={styles.alternativeTimeItem}>
-                <Text style={styles.alternativeTimeText}>
-                  Gia sư: {alt.tutorName}
-                </Text>
-                <Text style={styles.alternativeTimeText}>
-                  Ca học: {alt.timeSlot}
-                </Text>
-                <Text style={styles.alternativeTimeText}>
-                  Giá mỗi buổi: {alt.classPrice.toLocaleString()} VNĐ
-                </Text>
-                <Text style={styles.alternativeTimeText}>
-                  Ngày học: {convertDaysToVietnamese(alt.day)}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitButtonText}>Đăng bài</Text>
-        </TouchableOpacity>
-      </ScrollView>
+          <PickerSelect
+            label="Khung giờ học"
+            selectedValue={time}
+            onValueChange={(value) => setTime(value)}
+            items={timeSlotItems}
+          />
+          <Text style={styles.label}>Yêu cầu chi tiết</Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            placeholder="Nhập yêu cầu chi tiết"
+            value={requirements}
+            onChangeText={setRequirements}
+            multiline={true}
+            numberOfLines={4}
+          />
+          {alternativeTimes.length > 0 && (
+            <View style={styles.alternativeTimesContainer}>
+              <Text style={styles.alternativeTimesTitle}>
+                Các thời gian thay thế:
+              </Text>
+              {alternativeTimes.map((alt, index) => (
+                <View key={index} style={styles.alternativeTimeItem}>
+                  <Text style={styles.alternativeTimeText}>
+                    Gia sư: {alt.tutorName}
+                  </Text>
+                  <Text style={styles.alternativeTimeText}>
+                    Ca học: {alt.timeSlot}
+                  </Text>
+                  <Text style={styles.alternativeTimeText}>
+                    Giá mỗi buổi: {alt.classPrice.toLocaleString()} VNĐ
+                  </Text>
+                  <Text style={styles.alternativeTimeText}>
+                    Ngày học: {convertDaysToVietnamese(alt.day)}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+            <Text style={styles.submitButtonText}>Đăng bài</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 };

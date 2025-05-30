@@ -59,12 +59,15 @@ export default function HomeScreen() {
         const featuredResponse = await api.get("/api/tutors", {
           isFeatured: true,
         });
+        console.log("Featured Tutors Response:", featuredResponse.data);
+
         setFeaturedTutors(formatTutorData(featuredResponse.data));
 
         // Fetch new tutors
         const newResponse = await api.get("/api/tutors", {
           isNew: true,
         });
+        console.log("New Tutors Response:", newResponse.data);
         setNewTutors(formatTutorData(newResponse.data));
 
         console.log("Followed Tutors:", followedTutors);

@@ -48,6 +48,7 @@ export default function PostedArticlesScreen() {
     const fetchArticles = async () => {
       try {
         const response = await api.get("/api/posts"); // Replace with your API endpoint
+        console.log("Fetched articles:", response.data); // Log the fetched articles
         setArticles(response.data); // Update state with fetched articles
       } catch (error) {
         console.error("Error fetching articles:", error);
@@ -60,7 +61,7 @@ export default function PostedArticlesScreen() {
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.articleItem}
-      onPress={() => router.push(`/classes/${item.sessionId._id}`)}
+      onPress={() => router.push(`/classes/${item.classId._id}`)}
     >
       <View style={styles.articleActions}>
         <Text style={styles.classTitle}>
@@ -91,6 +92,13 @@ export default function PostedArticlesScreen() {
           Giá:{" "}
           <Text style={styles.detail}>
             {item.expectedPrice.toLocaleString()} đ
+          </Text>
+        </Text>
+        <Text style={styles.classDetail}>
+          {/* Giá dự kiến:{" "} */}
+          Gia sư:{" "}
+          <Text style={styles.detail}>
+            {item?.currentAssignedTutor?.userId?.name.toLocaleString()}
           </Text>
         </Text>
         <Text style={styles.classStatus}>

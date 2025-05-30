@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  Linking,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { router, useLocalSearchParams, useSegments } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { ApiClient } from "../../../config/api";
 import { convertImageToHttpUrl } from "../../../utils/image"; // Import hàm convertImageToHttpUrl từ utils
 import { formatNumber } from "../../../utils/money"; // Import hàm formatNumber từ utils
@@ -25,6 +32,16 @@ export default function ClassDetailScreen() {
     };
     fetchClassDetail(); // Gọi hàm fetchClassDetail khi component được mount
   }, []); // Chỉ chạy một lần khi component được mount
+
+  const onJoinClass = () => {
+    if (classData?.joinUrl) {
+      Linking.openURL(classData.joinUrl).catch((err) =>
+        console.error("Error opening URL:", err)
+      );
+    } else {
+      console.warn("Join URL is not available");
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -117,7 +134,7 @@ export default function ClassDetailScreen() {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.button}>
+      <TouchableOpacity style={styles.button} onPress={onJoinClass}>
         <Text style={styles.buttonText}>Vào lớp học {" >>"} </Text>
       </TouchableOpacity>
     </View>
